@@ -8,7 +8,56 @@
  * 
  * With lots of help from Paul Irish!
  * http://paulirish.com/
+ *
+ * Modified version by Luis Farzati
+ * http://github.com/luisfarzati/javascript-debug
+ * Improves output on modern versions of Chrome, Firefox and other browsers
+ * having consoles supporting Function.apply on their log methods.
  */
+
+if (!Function.prototype.bind) {
+  Function.prototype.bind = function (oThis) {
+    if (typeof this !== "function") {
+      // closest thing possible to the ECMAScript 5 internal IsCallable function
+      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+    }
+
+    var aArgs = Array.prototype.slice.call(arguments, 1), 
+        fToBind = this, 
+        fNOP = function () {},
+        fBound = function () {
+          return fToBind.apply(this instanceof fNOP && oThis
+                                 ? this
+                                 : oThis,
+                               aArgs.concat(Array.prototype.slice.call(arguments)));
+        };
+
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
+
+    return fBound;
+  };
+}
+
+if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function (fn, scope) {
+        'use strict';
+        var i, len;
+        for (i = 0, len = this.length; i < len; ++i) {
+            if (i in this) {
+                fn.call(scope, this[i], i, this);
+            }
+        }
+    };
+}
+
+if (Function.prototype.bind && window.console && typeof console.log == "object"){
+    [
+      "log","info","warn","error","assert","dir","clear","profile","profileEnd"
+    ].forEach(function (method) {
+        console[method] = this.bind(console[method], console);
+    }, Function.prototype.call);
+}
 
 // Script: JavaScript Debug: A simple wrapper for console.log
 //
@@ -182,8 +231,8 @@ window.debug = (function(){
         if ( !con || !is_level( idx ) ) { return; }
         
         con.firebug ? con[ level ].apply( window, args )
-          : con[ level ] ? con[ level ]( args )
-          : con.log( args );
+          : con[ level ] ? con[ level ].apply( con, args )
+          : con.log.apply( con, args );
       };
       
     })( idx, log_methods[idx] );
