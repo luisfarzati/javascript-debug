@@ -11,8 +11,11 @@
  *
  * Modified version by Luis Farzati
  * http://github.com/luisfarzati/javascript-debug
- * Improves output on modern versions of Chrome, Firefox and other browsers
+*
+ * Improves output on modern versions of Chrome, Firefox and other browsers 
  * having consoles supporting Function.apply on their log methods.
+ * Based on http://stackoverflow.com/a/5539378/1206952
+ * Not yet tested on all browsers!
  */
 
 if (!Function.prototype.bind) {
